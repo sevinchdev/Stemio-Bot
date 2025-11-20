@@ -69,7 +69,7 @@ def get_profile_confirmation_keyboard(lexicon: dict, lang: str):
         InlineKeyboardButton(text=lexicon[lang]['button-confirm'], callback_data="confirm_profile"),
         InlineKeyboardButton(text=lexicon[lang]['button-edit'], callback_data="edit_profile")
     )
-    builder.row(InlineKeyboardButton(text=lexicon[lang]['button-back'], callback_data="back_to_email_input"))
+    builder.row(InlineKeyboardButton(text=lexicon[lang]['button-back'], callback_data="back_to_city_input"))
     return builder.as_markup()
 
 def get_add_child_keyboard(lexicon: dict, lang: str):
