@@ -110,38 +110,32 @@ async def parent_phone_handler(message: Message, state: FSMContext, lexicon: dic
     await state.update_data(parent_phone=phone_number)
     user_data = await state.get_data()
     lang = user_data.get('language')
-    await message.answer("Спасибо!", reply_markup=ReplyKeyboardRemove())
+    # await message.answer("Спасибо!", reply_markup=ReplyKeyboardRemove())
     if user_data.get("editing_during_registration"):
         await state.update_data(editing_during_registration=False)
         await show_parent_confirmation_screen(message, state, lexicon, message.bot)
     else:
-        await state.set_state(ParentRegistration.entering_email)
-        next_msg = await message.answer(lexicon[lang]['parent-enter-email-prompt'], reply_markup=get_skip_keyboard(lexicon, lang))
+        await state.set_state(ParentRegistration.entering_city)
+        next_msg = await message.answer(lexicon[lang]['parent-enter-city-prompt'])
         await append_message_ids(state, message, next_msg)
 
-@router.message(ParentRegistration.entering_email)
-async def parent_email_handler(message: Message, state: FSMContext, lexicon: dict):
-    email = message.text.strip()
+# Replaced email step with city
+@router.message(ParentRegistration.entering_city)
+async def parent_city_handler(message: Message, state: FSMContext, lexicon: dict):
+    city = message.text.strip()
+    await state.update_data(parent_city=city) # <-- stored the city
+
+    # appends this message to deletion list
+    await append_message_ids(state, message)
+
     user_data = await state.get_data()
     lang = user_data.get('language')
-    if email and not re.match(EMAIL_REGEX, email):
-        error_msg = await message.answer(lexicon[lang]['parent-email-error'], reply_markup=get_skip_keyboard(lexicon, lang))
-        
-        await append_message_ids(state, message, error_msg)
-        return
-        
-    await state.update_data(parent_email=email if email else "Пропущено")
     if user_data.get("editing_during_registration"):
         await state.update_data(editing_during_registration=False)
         await show_parent_confirmation_screen(message, state, lexicon, message.bot)
     else:
         await show_parent_confirmation_screen(message, state, lexicon, message.bot)
 
-@router.callback_query(ParentRegistration.entering_email, F.data == "skip_email")
-async def skip_email_handler(callback: types.CallbackQuery, state: FSMContext, lexicon: dict):
-    await state.update_data(parent_email="Пропущено")
-    await show_parent_confirmation_screen(callback.message, state, lexicon, callback.bot)
-    await callback.answer()
 
 # --- ЭКРАНЫ ПОДТВЕРЖДЕНИЯ ---
 
@@ -153,15 +147,15 @@ async def show_parent_confirmation_screen(message: types.Message | types.Callbac
         first_name=user_data.get('parent_first_name'),
         last_name=user_data.get('parent_last_name'),
         phone=user_data.get('parent_phone'),
-        email=user_data.get('parent_email')
+        city=user_data.get('parent_city')
     )
     target_message = message if isinstance(message, types.Message) else message.message
     if isinstance(message, types.CallbackQuery):
         try:
             await message.message.delete()
         except Exception:
-            pass 
-            
+            pass
+
     conf_msg = await target_message.answer(confirmation_text, reply_markup=get_profile_confirmation_keyboard(lexicon, lang))
     await state.update_data(message_ids_to_delete=[conf_msg.message_id])
     await state.set_state(ParentRegistration.confirming_profile)
@@ -247,7 +241,7 @@ async def back_to_confirmation_from_edit(callback: types.CallbackQuery, state: F
     await callback.answer()
 
 # --- ОБРАБОТЧИКИ КНОПОК "НАЗАД" ---
-@router.callback_query(ParentRegistration.entering_email, F.data == "back_to_phone_input")
+@router.callback_query(ParentRegistration.entering_city, F.data == "back_to_phone_input")
 async def back_to_phone_input_handler(callback: types.CallbackQuery, state: FSMContext, lexicon: dict):
     await clear_history(callback.message.chat.id, state, callback.bot)
     lang = (await state.get_data()).get('language')
@@ -256,11 +250,12 @@ async def back_to_phone_input_handler(callback: types.CallbackQuery, state: FSMC
     await state.update_data(message_ids_to_delete=[next_msg.message_id])
     await callback.answer()
 
-@router.callback_query(ParentRegistration.confirming_profile, F.data == "back_to_email_input")
-async def back_to_email_input_handler(callback: types.CallbackQuery, state: FSMContext, lexicon: dict):
+# Changed back_to_email_input to back_to_city_input
+@router.callback_query(ParentRegistration.confirming_profile, F.data == "back_to_city_input")
+async def back_to_city_input_handler(callback: types.CallbackQuery, state: FSMContext, lexicon: dict):
     lang = (await state.get_data()).get('language')
-    await state.set_state(ParentRegistration.entering_email)
-    next_msg = await callback.message.answer(lexicon[lang]['parent-enter-email-prompt'], reply_markup=get_skip_keyboard(lexicon, lang))
+    await state.set_state(ParentRegistration.entering_city)
+    next_msg = await callback.message.answer(lexicon[lang]['parent-enter-city-prompt'], reply_markup=get_skip_keyboard(lexicon, lang))
     await state.update_data(message_ids_to_delete=[next_msg.message_id]) 
     await callback.answer()
 
