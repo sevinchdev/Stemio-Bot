@@ -9,7 +9,7 @@ class ParentRegistration(StatesGroup):
     entering_first_name = State()
     entering_last_name = State()
     entering_phone = State()
-    entering_email = State()
+    entering_city = State() #Changed entering_email to entering city
     confirming_profile = State() 
     editing_profile = State() 
     adding_child_decision = State()
