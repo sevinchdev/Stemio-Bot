@@ -46,23 +46,23 @@ async def forward_to_support_group_handler(message: types.Message, bot: Bot):
 
 
 # --- 3. Обработка ответов от поддержки пользователю ---
-@router.message(F.chat.id == int(SUPPORT_GROUP_ID), F.reply_to_message)
-async def forward_to_user_handler(message: types.Message, bot: Bot):
-
-    if message.reply_to_message.forward_from:
-        user_id = message.reply_to_message.forward_from.id
-        
-        try:
-            await bot.send_message(user_id, "Ответ от поддержки:")
-            await bot.copy_message(
-                chat_id=user_id,
-                from_chat_id=message.chat.id,
-                message_id=message.message_id 
-            )
-        except Exception as e:
-            await message.reply(f"Не удалось отправить ответ пользователю ID {user_id}. Ошибка: {e}")
-    else:
-        await message.reply("Чтобы ответить пользователю, используйте функцию 'Ответить' на его пересланное сообщение.")
+# @router.message(F.chat.id == int(SUPPORT_GROUP_ID), F.reply_to_message)
+# async def forward_to_user_handler(message: types.Message, bot: Bot):
+#
+#     if message.reply_to_message.forward_from:
+#         user_id = message.reply_to_message.forward_from.id
+#
+#         try:
+#             await bot.send_message(user_id, "Ответ от поддержки:")
+#             await bot.copy_message(
+#                 chat_id=user_id,
+#                 from_chat_id=message.chat.id,
+#                 message_id=message.message_id
+#             )
+#         except Exception as e:
+#             await message.reply(f"Не удалось отправить ответ пользователю ID {user_id}. Ошибка: {e}")
+#     else:
+#         await message.reply("Чтобы ответить пользователю, используйте функцию 'Ответить' на его пересланное сообщение.")
 
 
 # --- 4. Выход из режима чата ---

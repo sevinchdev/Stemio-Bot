@@ -6,7 +6,6 @@ import json
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.types import BotCommand
 from aiogram.enums import ParseMode
-from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
@@ -59,7 +58,7 @@ async def main() -> None:
 
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
-    bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
     with open('texts.json', 'r', encoding='utf-8') as f:
         lexicon = json.load(f)
     dp['lexicon'] = lexicon
